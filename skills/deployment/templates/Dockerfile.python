@@ -1,0 +1,77 @@
+# Multi-stage Python build for an AI agent service.
+#
+# Patterns enforced (see ../SKILL.md):
+#   - Pinned base image (replace @sha256:... with a real digest before build)
+#   - Builder stage installs deps; final stage carries only the venv + source
+#   - Non-root runtime user (uid 1000)
+#   - No secret ARGs and no secret files copied into layers
+#   - Health check probes the agent's readiness endpoint
+#
+# Build:
+#   docker build -t agent:$(git rev-parse --short HEAD) .
+#
+# Run (secrets via env file mounted at runtime, NOT baked in):
+#   docker run --rm --read-only --tmpfs /tmp \
+#     --env-file /path/to/secrets.env \
+#     -v agent_state:/var/agent \
+#     agent:<sha>
+
+# ---------- Builder ----------
+FROM python:3.12-slim@sha256:REPLACE_WITH_REAL_DIGEST AS builder
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PIP_NO_CACHE_DIR=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    VENV=/opt/venv
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN python -m venv "$VENV"
+ENV PATH="$VENV/bin:$PATH"
+
+WORKDIR /build
+COPY requirements.txt ./
+RUN pip install -r requirements.txt
+
+# ---------- Runtime ----------
+FROM python:3.12-slim@sha256:REPLACE_WITH_REAL_DIGEST AS runtime
+
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    PATH="/opt/venv/bin:$PATH" \
+    APP_ENV=prod \
+    AGENT_STATE_DIR=/var/agent
+
+# Create non-root user with a fixed uid/gid so volume permissions are predictable.
+RUN groupadd --gid 1000 app \
+    && useradd --uid 1000 --gid 1000 --shell /sbin/nologin --create-home app \
+    && mkdir -p /var/agent && chown -R app:app /var/agent
+
+COPY --from=builder /opt/venv /opt/venv
+
+WORKDIR /srv/app
+COPY --chown=app:app . /srv/app
+
+USER app
+
+# Stamp the build with provenance the running process can read.
+# Build with: --build-arg CODE_SHA=$(git rev-parse HEAD) --build-arg PROMPT_HASH=...
+ARG CODE_SHA=unknown
+ARG PROMPT_HASH=unknown
+ARG TOOLS_HASH=unknown
+ARG MODEL_ID=unknown
+ENV CODE_SHA=$CODE_SHA \
+    PROMPT_HASH=$PROMPT_HASH \
+    TOOLS_HASH=$TOOLS_HASH \
+    MODEL_ID=$MODEL_ID
+
+EXPOSE 8000
+
+# Readiness probe — must hit the model and confirm credentials, not just the process.
+HEALTHCHECK --interval=30s --timeout=10s --start-period=20s --retries=3 \
+  CMD python -m app.healthcheck || exit 1
+
+ENTRYPOINT ["python", "-m", "app"]

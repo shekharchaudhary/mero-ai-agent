@@ -1,0 +1,71 @@
+# Minimal compose file for an agent service.
+#
+# Patterns enforced (see ../SKILL.md):
+#   - Secrets via docker secrets, never env-vars-in-yaml
+#   - State on named volumes outside the container's writable layer
+#   - Read-only root filesystem with explicit tmpfs for /tmp
+#   - Healthcheck inherited from the Dockerfile
+#   - Per-tenant cost caps surfaced as env-injected limits
+#
+# Usage:
+#   echo "your-anthropic-key" | docker secret create anthropic_api_key -   # swarm mode
+#   # OR provide as bind-mounted file: see secrets.file below
+#   docker compose up -d
+
+services:
+  agent:
+    image: agent:${TAG:?set TAG to the image tag, e.g. git short sha}
+    container_name: agent
+    restart: unless-stopped
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m
+      - /var/cache:size=32m
+    user: "1000:1000"
+    environment:
+      APP_ENV: ${APP_ENV:-prod}
+      # Deployment tuple — must be set in the image OR overridden here.
+      MODEL_ID: ${MODEL_ID:?pin a model id, e.g. claude-opus-4-7}
+      PROMPT_HASH: ${PROMPT_HASH:?set the rendered system prompt SHA}
+      TOOLS_HASH: ${TOOLS_HASH:?set the tools schema SHA}
+      CODE_SHA: ${CODE_SHA:?set the git commit SHA}
+      EVAL_BASELINE: ${EVAL_BASELINE:-unknown}
+      # Cost guardrails (see error-handling + SKILL.md "Cost guardrails").
+      PER_TENANT_DAILY_USD_CAP: ${PER_TENANT_DAILY_USD_CAP:-5}
+      PER_TENANT_MONTHLY_USD_CAP: ${PER_TENANT_MONTHLY_USD_CAP:-100}
+      PER_TENANT_RPM_LIMIT: ${PER_TENANT_RPM_LIMIT:-20}
+      PER_RUN_USD_CAP: ${PER_RUN_USD_CAP:-1}
+      # Secret references are FILE PATHS, not the values themselves.
+      ANTHROPIC_API_KEY_FILE: /run/secrets/anthropic_api_key
+    secrets:
+      - anthropic_api_key
+    volumes:
+      - agent_state:/var/agent
+      - agent_logs:/var/log/agent
+    ports:
+      - "127.0.0.1:8000:8000"   # bind to loopback; expose via a reverse proxy
+    # cap_drop: drop everything by default, add back only what the agent needs.
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    deploy:
+      resources:
+        limits:
+          cpus: "1.0"
+          memory: 512M
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
+
+volumes:
+  agent_state:
+  agent_logs:
+
+secrets:
+  anthropic_api_key:
+    # In swarm: docker secret create anthropic_api_key /path/to/key.txt
+    # Outside swarm, use the file: form against a host file outside the repo:
+    file: /etc/agent/secrets/anthropic_api_key.txt

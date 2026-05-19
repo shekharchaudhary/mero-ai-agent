@@ -13,6 +13,7 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
 | [prompt-engineering](prompt-engineering/) | Writing or refining a system prompt — six-section skeleton, output-schema selection, Anthropic prompt-caching layout, and an iteration discipline that avoids overfitting. |
 | [tool-design](tool-design/) | Adding a tool to an agent or auditing the tool surface — naming, input schemas, output envelope, idempotency, side-effect classification, and an MCP server scaffold. |
 | [error-handling](error-handling/) | An agent silently fails, retries forever, or burns cost in a doom loop — classifies retryable vs terminal errors, caps retry budgets, detects no-progress, and structures escalation to the user. |
+| [deployment](deployment/) | Moving an agent off your laptop — pins the model/prompt/tools tuple, externalizes secrets and state, wires per-tenant cost caps, health checks that probe the model, and canary rollout by user hash. |
 
 ## How the skills relate
 
@@ -35,6 +36,11 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
                                    │
                               memory
                               (cross-session state)
+
+                  deployment
+                  (the box it all runs in:
+                   pinned tuple, caps, secrets,
+                   health checks that mean something)
 ```
 
 - **`security-guardrails`** and **`tool-design`** layer defense in depth: design tools so misuse is hard, then enforce permissions at runtime.
@@ -81,4 +87,4 @@ Match the depth of the existing skills — opinionated, concrete, and explicit a
 
 ## Status
 
-Seven skills shipped. Likely next: deployment, cost tracking. Open to direction.
+Eight skills shipped. Likely next: cost tracking. Open to direction.
