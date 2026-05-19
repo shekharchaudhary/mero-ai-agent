@@ -1,0 +1,52 @@
+{
+  "_comment": "Sample Claude Code settings with a default-deny permission posture. Copy to .claude/settings.json and tighten/loosen for the specific project.",
+  "permissions": {
+    "allow": [
+      "Read",
+      "Edit",
+      "Write",
+      "Bash(git status)",
+      "Bash(git diff:*)",
+      "Bash(git log:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(npm test:*)",
+      "Bash(npm run build:*)",
+      "Bash(ls:*)",
+      "Bash(pwd)",
+      "Bash(rg:*)",
+      "Bash(grep:*)",
+      "Bash(find:*)"
+    ],
+    "deny": [
+      "Bash(rm -rf:*)",
+      "Bash(git push --force:*)",
+      "Bash(git reset --hard:*)",
+      "Bash(git checkout .:*)",
+      "Bash(git clean -f:*)",
+      "Bash(git branch -D:*)",
+      "Bash(curl http://169.254.169.254:*)",
+      "Bash(curl metadata.google.internal:*)",
+      "Bash(sudo:*)",
+      "Bash(chmod 777:*)",
+      "Bash(:(){ :|:& };:)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "_comment": "Wire up a script that audits and gates dangerous tool calls. See skills/security-guardrails/SKILL.md.",
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.agent-audit/pre-tool-guard.sh"
+          }
+        ]
+      }
+    ]
+  },
+  "env": {
+    "_comment": "Avoid putting real secrets here. Use a local secret manager and inject at runtime."
+  }
+}
