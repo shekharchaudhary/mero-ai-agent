@@ -16,6 +16,7 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
 | [deployment](deployment/) | Moving an agent off your laptop — pins the model/prompt/tools tuple, externalizes secrets and state, wires per-tenant cost caps, health checks that probe the model, and canary rollout by user hash. |
 | [cost-tracking](cost-tracking/) | A surprising invoice is on the horizon — a per-call ledger with tenant/run attribution, price-versioned cost math, real-time budget caps, cache-hit-rate monitoring, and cost-per-outcome reporting. |
 | [rag](rag/) | An agent needs to ground answers in a corpus larger than the context window — structural chunking, hybrid retrieval with re-ranking, prompt assembly that caches well and cites sources, and retrieval evals separate from generation evals. |
+| [multi-agent](multi-agent/) | One agent is hitting context limits, needs parallelism, or needs specialists — decide first if multi-agent is actually warranted, then pick the pattern (router/pipeline/orchestrator/hierarchical/debate), model subagents as typed tools with isolated context and bounded depth + fan-out. |
 
 ## How the skills relate
 
@@ -51,6 +52,10 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
                   rag
                   (retrieval over a corpus — chunk, hybrid search,
                    numbered citations the model can't fake)
+
+                  multi-agent
+                  (orchestration when one agent isn't enough —
+                   subagents as typed tools, bounded depth/fanout)
 ```
 
 - **`security-guardrails`** and **`tool-design`** layer defense in depth: design tools so misuse is hard, then enforce permissions at runtime.
@@ -97,4 +102,4 @@ Match the depth of the existing skills — opinionated, concrete, and explicit a
 
 ## Status
 
-Ten skills shipped. The foundation is broad now — likely next directions: multi-agent orchestration, eval-driven CI, on-call/incident response, caching strategy. Open to direction.
+Eleven skills shipped. The foundation is broad now — likely next directions: eval-driven CI, on-call/incident response, caching strategy, human-in-the-loop. Open to direction.
