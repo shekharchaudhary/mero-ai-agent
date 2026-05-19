@@ -12,6 +12,7 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
 | [evals](evals/) | Before tuning prompts or upgrading a model — scaffolds a golden dataset, deterministic and LLM-judge scorers, regression tracking, and CI integration. |
 | [prompt-engineering](prompt-engineering/) | Writing or refining a system prompt — six-section skeleton, output-schema selection, Anthropic prompt-caching layout, and an iteration discipline that avoids overfitting. |
 | [tool-design](tool-design/) | Adding a tool to an agent or auditing the tool surface — naming, input schemas, output envelope, idempotency, side-effect classification, and an MCP server scaffold. |
+| [error-handling](error-handling/) | An agent silently fails, retries forever, or burns cost in a doom loop — classifies retryable vs terminal errors, caps retry budgets, detects no-progress, and structures escalation to the user. |
 
 ## How the skills relate
 
@@ -28,6 +29,9 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
                                    │
                     evals ─────────┤
                     (the scoreboard)
+                                   │
+                  error-handling ──┤
+                  (fail loud, escalate)
                                    │
                               memory
                               (cross-session state)
@@ -77,4 +81,4 @@ Match the depth of the existing skills — opinionated, concrete, and explicit a
 
 ## Status
 
-Six skills shipped. Likely next: error-handling/retries, deployment, cost tracking. Open to direction.
+Seven skills shipped. Likely next: deployment, cost tracking. Open to direction.

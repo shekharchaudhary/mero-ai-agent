@@ -10,7 +10,7 @@ Each skill is self-contained so it can be dropped into an agent harness without 
 
 ## Skills
 
-Six scaffold skills, one per folder under `skills/`. See [`skills/README.md`](skills/README.md) for the full index and how they relate.
+Seven scaffold skills, one per folder under `skills/`. See [`skills/README.md`](skills/README.md) for the full index and how they relate.
 
 | Skill | One-line purpose |
 | --- | --- |
@@ -20,6 +20,7 @@ Six scaffold skills, one per folder under `skills/`. See [`skills/README.md`](sk
 | [evals](skills/evals/) | Golden datasets, deterministic and judge scorers, regression tracking. |
 | [prompt-engineering](skills/prompt-engineering/) | System prompt skeleton, prompt-caching layout, iteration discipline. |
 | [tool-design](skills/tool-design/) | Tool naming, schemas, side-effect classification, MCP scaffold. |
+| [error-handling](skills/error-handling/) | Retry budgets, error classification, no-progress detection, structured escalation. |
 
 ## Repository layout
 
@@ -32,7 +33,8 @@ mero-ai-agent/
 │   ├── memory/
 │   ├── evals/
 │   ├── prompt-engineering/
-│   └── tool-design/
+│   ├── tool-design/
+│   └── error-handling/
 └── README.md
 ```
 
@@ -59,7 +61,7 @@ See [`skills/README.md`](skills/README.md) for the file shape and conventions. I
 
 ## Status
 
-Six skills shipped. Likely next: error-handling/retries, deployment, cost tracking.
+Seven skills shipped. Likely next: deployment, cost tracking.
 
 ## License
 
