@@ -14,6 +14,7 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
 | [tool-design](tool-design/) | Adding a tool to an agent or auditing the tool surface — naming, input schemas, output envelope, idempotency, side-effect classification, and an MCP server scaffold. |
 | [error-handling](error-handling/) | An agent silently fails, retries forever, or burns cost in a doom loop — classifies retryable vs terminal errors, caps retry budgets, detects no-progress, and structures escalation to the user. |
 | [deployment](deployment/) | Moving an agent off your laptop — pins the model/prompt/tools tuple, externalizes secrets and state, wires per-tenant cost caps, health checks that probe the model, and canary rollout by user hash. |
+| [cost-tracking](cost-tracking/) | A surprising invoice is on the horizon — a per-call ledger with tenant/run attribution, price-versioned cost math, real-time budget caps, cache-hit-rate monitoring, and cost-per-outcome reporting. |
 
 ## How the skills relate
 
@@ -41,6 +42,10 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
                   (the box it all runs in:
                    pinned tuple, caps, secrets,
                    health checks that mean something)
+
+                  cost-tracking
+                  (the ledger that ties tokens, retries,
+                   caches, and caps into one bill of materials)
 ```
 
 - **`security-guardrails`** and **`tool-design`** layer defense in depth: design tools so misuse is hard, then enforce permissions at runtime.
@@ -87,4 +92,4 @@ Match the depth of the existing skills — opinionated, concrete, and explicit a
 
 ## Status
 
-Eight skills shipped. Likely next: cost tracking. Open to direction.
+Nine skills shipped. The foundation is broad now — likely next directions: caching strategy, multi-agent orchestration, RAG/retrieval, eval-driven CI, on-call/incident response. Open to direction.

@@ -10,7 +10,7 @@ Each skill is self-contained so it can be dropped into an agent harness without 
 
 ## Skills
 
-Eight scaffold skills, one per folder under `skills/`. See [`skills/README.md`](skills/README.md) for the full index and how they relate.
+Nine scaffold skills, one per folder under `skills/`. See [`skills/README.md`](skills/README.md) for the full index and how they relate.
 
 | Skill | One-line purpose |
 | --- | --- |
@@ -22,6 +22,7 @@ Eight scaffold skills, one per folder under `skills/`. See [`skills/README.md`](
 | [tool-design](skills/tool-design/) | Tool naming, schemas, side-effect classification, MCP scaffold. |
 | [error-handling](skills/error-handling/) | Retry budgets, error classification, no-progress detection, structured escalation. |
 | [deployment](skills/deployment/) | Pinned deployment tuple, external secrets/state, cost caps, model-probing health checks, canary by hash. |
+| [cost-tracking](skills/cost-tracking/) | Per-call ledger with attribution, price-versioned cost math, real-time caps, cache-hit-rate, cost-per-outcome. |
 
 ## Repository layout
 
@@ -36,7 +37,8 @@ mero-ai-agent/
 │   ├── prompt-engineering/
 │   ├── tool-design/
 │   ├── error-handling/
-│   └── deployment/
+│   ├── deployment/
+│   └── cost-tracking/
 └── README.md
 ```
 
@@ -63,7 +65,7 @@ See [`skills/README.md`](skills/README.md) for the file shape and conventions. I
 
 ## Status
 
-Eight skills shipped. Likely next: cost tracking.
+Nine skills shipped. Foundational set is broad now. Next directions could be caching strategy, multi-agent orchestration, RAG/retrieval, eval-driven CI, or on-call/incident response.
 
 ## License
 
