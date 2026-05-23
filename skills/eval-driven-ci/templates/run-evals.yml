@@ -1,0 +1,146 @@
+# GitHub Actions workflow: run evals on PRs that touch behavior-affecting
+# paths, post a PR comment with the score delta vs baseline, gate the merge
+# on per-tag regressions. See ../SKILL.md.
+#
+# Place at: .github/workflows/run-evals.yml
+
+name: evals
+
+on:
+  pull_request:
+    paths:
+      # Behavior-affecting paths only. Code-only changes skip this workflow.
+      - "prompts/**"
+      - "tools/**"
+      - "src/agent/**"
+      - "config/model.yml"
+      - "evals/eval/**"
+      - ".github/workflows/run-evals.yml"
+  pull_request_target:
+    types: [labeled]   # allows `run-evals` label to force-run a draft PR
+  schedule:
+    - cron: "17 4 * * *"   # nightly against default branch — catches model-side drift
+  workflow_dispatch:        # manual runs on demand
+
+# Cancel superseded PR runs so cost doesn't compound on rapid pushes.
+concurrency:
+  group: evals-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write   # to post the score-delta comment
+
+jobs:
+  evals:
+    if: >
+      github.event_name != 'pull_request_target' ||
+      contains(github.event.pull_request.labels.*.name, 'run-evals')
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # Pin everything that affects behavior — the deployment tuple from the deployment skill.
+      MODEL_ID: ${{ vars.EVAL_MODEL_ID }}
+      EVAL_BASELINE_PATH: evals/baseline.json
+      EVAL_RESULTS_DIR: evals/results
+      EVAL_CACHE_DIR: ${{ github.workspace }}/.eval-cache
+      EVAL_DOLLAR_CAP_PER_RUN: "5.00"
+      EVAL_JUDGE_SEEDS: "3"
+      # Sample policy: PRs sample, nightly + manual run the full set.
+      EVAL_SAMPLE_POLICY: ${{ github.event_name == 'pull_request' && 'stratified' || 'full' }}
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0   # baselines/ history may be needed for comparison
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt -r evals/requirements.txt
+
+      # Cache scored cases by (prompt_hash, tools_hash, model_id, eval_set_version).
+      # If the inputs haven't changed, the runner replays cached scores
+      # instead of re-paying for judge calls.
+      - name: Hash inputs (for eval cache key)
+        id: hashes
+        run: |
+          python -c "
+          import hashlib, pathlib, os
+          def h(*paths):
+              s = hashlib.sha256()
+              for p in paths:
+                  for f in sorted(pathlib.Path(p).rglob('*')):
+                      if f.is_file():
+                          s.update(f.read_bytes())
+              return s.hexdigest()[:16]
+          out = {
+              'prompt_hash':    h('prompts'),
+              'tools_hash':     h('tools'),
+              'eval_set_hash':  h('evals/eval'),
+          }
+          gh = os.environ['GITHUB_OUTPUT']
+          with open(gh, 'a') as fh:
+              for k, v in out.items():
+                  fh.write(f'{k}={v}\n')
+          "
+
+      - name: Restore eval result cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.EVAL_CACHE_DIR }}
+          key: evals-${{ env.MODEL_ID }}-${{ steps.hashes.outputs.prompt_hash }}-${{ steps.hashes.outputs.tools_hash }}-${{ steps.hashes.outputs.eval_set_hash }}
+          restore-keys: |
+            evals-${{ env.MODEL_ID }}-${{ steps.hashes.outputs.prompt_hash }}-${{ steps.hashes.outputs.tools_hash }}-
+            evals-${{ env.MODEL_ID }}-
+
+      - name: Run evals
+        id: run
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.EVAL_ANTHROPIC_API_KEY }}
+        run: |
+          python -m evals.ci.eval_ci \
+              --eval-set evals/eval \
+              --baseline "$EVAL_BASELINE_PATH" \
+              --results-dir "$EVAL_RESULTS_DIR" \
+              --cache-dir "$EVAL_CACHE_DIR" \
+              --model "$MODEL_ID" \
+              --sample-policy "$EVAL_SAMPLE_POLICY" \
+              --judge-seeds "$EVAL_JUDGE_SEEDS" \
+              --dollar-cap "$EVAL_DOLLAR_CAP_PER_RUN" \
+              --code-sha "$GITHUB_SHA" \
+              --prompt-hash "${{ steps.hashes.outputs.prompt_hash }}" \
+              --tools-hash "${{ steps.hashes.outputs.tools_hash }}" \
+              --eval-set-version "${{ steps.hashes.outputs.eval_set_hash }}" \
+              --out "$EVAL_RESULTS_DIR/pr.json"
+
+      - name: Upload result artifact (kept forever)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-result-${{ github.run_id }}
+          path: ${{ env.EVAL_RESULTS_DIR }}/pr.json
+          retention-days: 0   # 0 = max (keep "forever" for historical comparison)
+
+      - name: Post PR comment
+        if: github.event_name == 'pull_request' || github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          BODY=$(python -m evals.ci.pr_comment "$EVAL_RESULTS_DIR/pr.json")
+          gh pr comment "${{ github.event.pull_request.number }}" --body "$BODY"
+
+      # Gating: the eval_ci script sets a non-zero exit code on a hard
+      # regression. This step intentionally re-asserts so the failure shows
+      # up on its own line in the workflow UI.
+      - name: Enforce gates
+        run: |
+          if [ "${{ steps.run.outcome }}" != "success" ]; then
+            echo "Eval gates failed — see PR comment for details."
+            exit 1
+          fi

@@ -18,6 +18,7 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
 | [rag](rag/) | An agent needs to ground answers in a corpus larger than the context window — structural chunking, hybrid retrieval with re-ranking, prompt assembly that caches well and cites sources, and retrieval evals separate from generation evals. |
 | [multi-agent](multi-agent/) | One agent is hitting context limits, needs parallelism, or needs specialists — decide first if multi-agent is actually warranted, then pick the pattern (router/pipeline/orchestrator/hierarchical/debate), model subagents as typed tools with isolated context and bounded depth + fan-out. |
 | [human-in-the-loop](human-in-the-loop/) | The agent takes irreversible actions or needs quality oversight evals can't catch — multi-signal escalation gates, a durable approval queue with explicit timeout policies, focused reviewer surface, and a feedback pipeline that refuses to collect signals it can't route. |
+| [eval-driven-ci](eval-driven-ci/) | Evals exist but nobody runs them on every change — wires `evals` into CI with per-tag gating against a pinned baseline, N-seed judge noise control, selective runs on behavior-affecting paths, cost caps, and a PR comment that surfaces the regression in 15 seconds. |
 
 ## How the skills relate
 
@@ -61,6 +62,10 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
                   human-in-the-loop
                   (humans at the decisions worth their attention —
                    approval gates, durable queue, feedback that routes)
+
+                  eval-driven-ci
+                  (evals as a gate: per-tag deltas vs pinned baseline,
+                   bisection by prompt hash, PR comment in 15s)
 ```
 
 - **`security-guardrails`** and **`tool-design`** layer defense in depth: design tools so misuse is hard, then enforce permissions at runtime.
@@ -107,4 +112,4 @@ Match the depth of the existing skills — opinionated, concrete, and explicit a
 
 ## Status
 
-Twelve skills shipped. The foundation is broad now — likely next directions: eval-driven CI, on-call/incident response, caching strategy, streaming/UX. Open to direction.
+Thirteen skills shipped. The foundation is broad now — likely next directions: incident response/on-call, caching strategy, streaming/UX, agent checkpointing. Open to direction.
