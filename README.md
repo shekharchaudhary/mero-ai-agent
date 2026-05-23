@@ -10,7 +10,7 @@ Each skill is self-contained so it can be dropped into an agent harness without 
 
 ## Skills
 
-Eleven scaffold skills, one per folder under `skills/`. See [`skills/README.md`](skills/README.md) for the full index and how they relate.
+Twelve scaffold skills, one per folder under `skills/`. See [`skills/README.md`](skills/README.md) for the full index and how they relate.
 
 | Skill | One-line purpose |
 | --- | --- |
@@ -25,6 +25,7 @@ Eleven scaffold skills, one per folder under `skills/`. See [`skills/README.md`]
 | [cost-tracking](skills/cost-tracking/) | Per-call ledger with attribution, price-versioned cost math, real-time caps, cache-hit-rate, cost-per-outcome. |
 | [rag](skills/rag/) | Structural chunking with metadata, hybrid retrieval + re-ranking, numbered chunks with citation validation. |
 | [multi-agent](skills/multi-agent/) | Five orchestration patterns, subagents-as-tools with isolated context, depth/fan-out caps, parallel dispatch with budget propagation. |
+| [human-in-the-loop](skills/human-in-the-loop/) | Multi-signal escalation gates, durable approval queue with timeout policies, focused reviewer surface, feedback pipeline with named consumers. |
 
 ## Repository layout
 
@@ -42,7 +43,8 @@ mero-ai-agent/
 │   ├── deployment/
 │   ├── cost-tracking/
 │   ├── rag/
-│   └── multi-agent/
+│   ├── multi-agent/
+│   └── human-in-the-loop/
 └── README.md
 ```
 
@@ -69,7 +71,7 @@ See [`skills/README.md`](skills/README.md) for the file shape and conventions. I
 
 ## Status
 
-Eleven skills shipped. Foundational set is broad now. Next directions could be eval-driven CI, on-call/incident response, caching strategy, or human-in-the-loop.
+Twelve skills shipped. Foundational set is broad now. Next directions could be eval-driven CI, on-call/incident response, caching strategy, or streaming/UX.
 
 ## License
 

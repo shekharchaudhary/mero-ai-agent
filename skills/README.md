@@ -17,6 +17,7 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
 | [cost-tracking](cost-tracking/) | A surprising invoice is on the horizon — a per-call ledger with tenant/run attribution, price-versioned cost math, real-time budget caps, cache-hit-rate monitoring, and cost-per-outcome reporting. |
 | [rag](rag/) | An agent needs to ground answers in a corpus larger than the context window — structural chunking, hybrid retrieval with re-ranking, prompt assembly that caches well and cites sources, and retrieval evals separate from generation evals. |
 | [multi-agent](multi-agent/) | One agent is hitting context limits, needs parallelism, or needs specialists — decide first if multi-agent is actually warranted, then pick the pattern (router/pipeline/orchestrator/hierarchical/debate), model subagents as typed tools with isolated context and bounded depth + fan-out. |
+| [human-in-the-loop](human-in-the-loop/) | The agent takes irreversible actions or needs quality oversight evals can't catch — multi-signal escalation gates, a durable approval queue with explicit timeout policies, focused reviewer surface, and a feedback pipeline that refuses to collect signals it can't route. |
 
 ## How the skills relate
 
@@ -56,6 +57,10 @@ A curated set of scaffold skills for building reliable AI agents. Each skill is 
                   multi-agent
                   (orchestration when one agent isn't enough —
                    subagents as typed tools, bounded depth/fanout)
+
+                  human-in-the-loop
+                  (humans at the decisions worth their attention —
+                   approval gates, durable queue, feedback that routes)
 ```
 
 - **`security-guardrails`** and **`tool-design`** layer defense in depth: design tools so misuse is hard, then enforce permissions at runtime.
@@ -102,4 +107,4 @@ Match the depth of the existing skills — opinionated, concrete, and explicit a
 
 ## Status
 
-Eleven skills shipped. The foundation is broad now — likely next directions: eval-driven CI, on-call/incident response, caching strategy, human-in-the-loop. Open to direction.
+Twelve skills shipped. The foundation is broad now — likely next directions: eval-driven CI, on-call/incident response, caching strategy, streaming/UX. Open to direction.
